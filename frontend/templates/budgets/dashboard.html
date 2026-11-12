@@ -1,0 +1,99 @@
+{% extends "base.html" %}{% load humanize %}{% block title %}Dashboard | BudgetWise{% endblock %}
+{% block content %}
+<div class="finance-dashboard finance-v4">
+  <section class="v4-intro" aria-label="Financial dashboard">
+    <div class="v4-intro-copy">
+      <div class="finance-overline"><span class="finance-status-dot" aria-hidden="true"></span> PERSONAL FINANCE / DASHBOARD</div>
+      <h1>Financial overview <span>— Welcome back, {{ user.first_name|default:user.username }}.</span></h1>
+    </div>
+    <div class="finance-intro-actions">
+      <a class="finance-action finance-action-secondary" href="{% url 'transactions' %}">View transactions ↗</a>
+      <a class="finance-action finance-action-primary" href="{% url 'create' %}">+ New budget</a>
+    </div>
+  </section>
+
+  <section class="finance-metrics v4-metrics" aria-label="Financial summary">
+    <article class="finance-kpi finance-kpi-balance v4-budget-kpi">
+      <div class="finance-kpi-heading"><span>BUDGET OVERVIEW</span><span class="v4-card-corner">ALL RECORDS</span></div>
+      <div class="v4-budget-body">
+        <div><strong class="finance-kpi-number">${{ balance|floatformat:2|intcomma }}</strong><span class="v4-muted">Available balance</span></div>
+        <div class="v4-segmented-track" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="v4-budget-foot">{{ budget_count }} budget{{ budget_count|pluralize }} <span>· Income minus recorded expenses</span></div>
+    </article>
+    <article class="finance-kpi v4-income-kpi">
+      <div class="finance-kpi-heading"><span>INCOME</span><span class="v4-kpi-mark is-income" aria-hidden="true">↙</span></div>
+      <strong class="finance-kpi-number">${{ total_income|floatformat:2|intcomma }}</strong>
+      <div class="finance-kpi-foot"><span class="finance-status-dot" aria-hidden="true"></span> Total recorded income</div>
+    </article>
+    <article class="finance-kpi v4-expense-kpi">
+      <div class="finance-kpi-heading"><span>EXPENSES</span><span class="v4-kpi-mark is-expense" aria-hidden="true">↗</span></div>
+      <strong class="finance-kpi-number">${{ total_expenses|floatformat:2|intcomma }}</strong>
+      <div class="finance-kpi-foot"><span class="finance-status-dot finance-dot-yellow" aria-hidden="true"></span> Total recorded spending</div>
+    </article>
+  </section>
+
+  <section class="finance-panel finance-chart-panel v4-flow-panel" aria-label="Spending comparison">
+    <div class="finance-panel-heading v4-chart-heading">
+      <div><div class="finance-panel-kicker">ANALYTICS</div><h2>Budget &amp; spending flow</h2><p>Monthly expenses compared across two calendar years</p></div>
+      <div class="finance-panel-controls"><span class="finance-period-pill">{{ compare_year }} vs {{ previous_year }}</span><a class="finance-panel-link" href="{% url 'reports' %}">Full report ↗</a></div>
+    </div>
+    <div class="v4-chart-legend" aria-label="Chart legend"><span><i class="v4-key-current"></i> {{ compare_year }} spending</span><span><i class="v4-key-previous"></i> {{ previous_year }} spending</span></div>
+    <div class="v4-chart-scroller">
+      <div class="v4-chart" role="img" aria-label="Comparison of recorded monthly spending in {{ compare_year }} and {{ previous_year }}">
+        <div class="v4-chart-grid" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        {% for month in year_compare %}
+        <div class="v4-chart-month">
+          <div class="v4-chart-pair">
+            {% if month.current_amount %}<span class="v4-bar v4-bar-current" style="height:{{ month.current_height }}%" title="{{ month.label }} {{ compare_year }}: ${{ month.current_amount|floatformat:2|intcomma }}"></span>{% else %}<span class="v4-bar-empty"></span>{% endif %}
+            {% if month.previous_amount %}<span class="v4-bar v4-bar-previous" style="height:{{ month.previous_height }}%" title="{{ month.label }} {{ previous_year }}: ${{ month.previous_amount|floatformat:2|intcomma }}"></span>{% else %}<span class="v4-bar-empty"></span>{% endif %}
+          </div>
+          <span class="v4-month-label">{{ month.label }}</span>
+        </div>
+        {% endfor %}
+        {% if not has_year_expenses %}<div class="v4-chart-zero" role="status">No recorded spending for these years yet. Add an expense to populate the chart.</div>{% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="finance-bottom-grid v4-detail-grid" aria-label="Money and spending details">
+    <article class="finance-panel finance-cash-panel v4-money-card">
+      <div class="v4-widget-heading"><h2>Money flow</h2><span aria-hidden="true">↗</span></div>
+      <div class="v4-money-stat"><span>Available balance</span><strong>${{ balance|floatformat:2|intcomma }}</strong></div>
+      <div class="finance-cash-curve" aria-hidden="true"><svg viewBox="0 0 360 90" preserveAspectRatio="none"><path d="M0 75 C34 76 43 21 77 48 S129 86 162 40 S217 84 248 30 S314 44 360 12"/></svg></div>
+      <div class="finance-cash-stats"><span><small>Income</small><strong>${{ total_income|floatformat:2|intcomma }}</strong></span><span><small>Expenses</small><strong>${{ total_expenses|floatformat:2|intcomma }}</strong></span></div>
+      <p class="v4-graphic-disclaimer">Illustrative line · balances are your real recorded totals.</p>
+    </article>
+    <article class="finance-panel finance-category-panel v4-spending-card">
+      <div class="v4-widget-heading"><h2>Spending overview</h2><a href="{% url 'reports' %}" aria-label="View spending report">↗</a></div>
+      <div class="v4-gauge-wrap">
+        <svg class="v4-gauge" viewBox="0 0 120 90" role="img" aria-label="Distribution of recorded expense categories">
+          <path d="M 13 71 A 47 47 0 0 1 107 71" fill="none" stroke="#283a34" stroke-width="12" stroke-linecap="round"/>
+          {% for segment in donut_segments %}
+          <circle cx="60" cy="71" r="47" pathLength="200" fill="none" stroke="{{ segment.color }}" stroke-width="11" stroke-dasharray="{{ segment.size }} 200" stroke-dashoffset="{{ segment.offset }}" transform="rotate(180 60 71)" clip-path="url(#v4-gauge-mask)"/>
+          {% endfor %}
+          <defs><clipPath id="v4-gauge-mask"><rect x="0" y="0" width="120" height="72"/></clipPath></defs>
+        </svg>
+        <div class="v4-gauge-total"><strong>${{ total_expenses|floatformat:2|intcomma }}</strong><span>recorded spending</span></div>
+      </div>
+      {% if donut_segments %}<div class="v4-category-pills">{% for segment in donut_segments %}<span><i style="background:{{ segment.color }}"></i>{{ segment.name }} {{ segment.pct }}%</span>{% endfor %}</div>
+      {% else %}<p class="v4-widget-empty">No categories yet. Add an expense to see the breakdown.</p>{% endif %}
+    </article>
+    <article class="finance-panel finance-history-panel v4-history-card">
+      <div class="v4-widget-heading"><h2>Spending history</h2><a href="{% url 'transactions' %}" aria-label="View all transactions">↗</a></div>
+      <div class="v4-history-head"><span>TRANSACTION</span><span>AMOUNT</span><span>TYPE</span></div>
+      {% if recent %}
+      <div class="v4-history-rows">{% for item in recent|slice:':4' %}
+        <div class="v4-history-row"><div><strong>{{ item.name }}</strong><small>{{ item.budget.budget_name }} · {% if item.date %}{{ item.date|date:'M j' }}{% else %}Undated{% endif %}</small></div><strong class="{% if item.kind == 'income' %}is-income{% endif %}">{% if item.kind == 'income' %}+{% else %}−{% endif %}${{ item.amount|floatformat:2|intcomma }}</strong><span class="v4-type {% if item.kind == 'income' %}is-income{% endif %}">{{ item.kind }}</span></div>
+      {% endfor %}</div>
+      {% else %}<div class="v4-history-empty"><strong>No transactions yet</strong><span>Income and expenses will appear here.</span><a href="{% url 'index' %}">Open budgets ↗</a></div>{% endif %}
+    </article>
+  </section>
+
+  <section class="finance-panel finance-budgets-panel v4-budget-health">
+    <div class="finance-panel-heading"><div><div class="finance-panel-kicker">BUDGET HEALTH</div><h2>Your budgets</h2><p>Spending compared with recorded income in each budget.</p></div><a class="finance-panel-link" href="{% url 'index' %}">Manage budgets ↗</a></div>
+    {% if budget_rows %}<div class="finance-budgets-grid">{% for item in budget_rows %}<div class="finance-budget-row"><div><strong><a href="{% url 'detail' item.budget.pk %}">{{ item.budget.budget_name }}</a></strong><span>${{ item.spent|floatformat:0|intcomma }} of ${{ item.income|floatformat:0|intcomma }}</span></div><div class="finance-budget-meter"><span class="{% if item.over %}is-over{% endif %}" style="width:{{ item.pct }}%"></span></div></div>{% endfor %}</div>
+    {% else %}<div class="finance-budgets-empty">No budgets created yet. <a href="{% url 'create' %}">Create your first budget ↗</a></div>{% endif %}
+  </section>
+</div>
+{% endblock %}

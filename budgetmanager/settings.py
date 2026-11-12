@@ -32,7 +32,7 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 INSTALLED_APPS = [
-    'main_app',
+    'backend.main_app.apps.MainAppConfig',
     'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.humanize', 'django.contrib.staticfiles',
 ]
@@ -45,11 +45,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.privacy.PrivacyHeadersMiddleware',
 ]
 ROOT_URLCONF = 'budgetmanager.urls'
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [BASE_DIR / 'templates'], 'APP_DIRS': True,
+    'DIRS': [BASE_DIR / 'frontend' / 'templates'], 'APP_DIRS': True,
     'OPTIONS': {'context_processors': [
         'django.template.context_processors.debug',
         'django.template.context_processors.request',
@@ -68,6 +69,7 @@ TIME_ZONE = 'America/New_York'
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'frontend' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'}}
 LOGIN_REDIRECT_URL = '/dashboard/'

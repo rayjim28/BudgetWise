@@ -1,3 +1,13 @@
+# BudgetWise V2 — Dark Finance Dashboard
+
+A redesigned, responsive personal-finance interface using the original Django models, authentication, budget workflows, monthly expense chart, reports and CSV export. No new database schema or migration is introduced.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the frontend, backend, middleware layout and safe local testing instructions.
+
+---
+
+## Original application documentation
+
 # BudgetWise — Django finance tracker
 
 This update retains the original Budget Manager Django application and its database models, **not a new database schema**.

@@ -1,0 +1,56 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BudgetWise helps you manage budgets, track income and expenses, and understand your spending.">
+  <title>{% block title %}BudgetWise{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard-v2.css' %}">
+  <link rel="stylesheet" href="{% static 'css/reference-v3.css' %}">
+  <link rel="stylesheet" href="{% static 'css/reference-v4.css' %}">
+  <script src="{% static 'js/app.js' %}" defer></script>
+</head>
+<body class="{% if not user.is_authenticated %}auth-body{% endif %}">
+{% if user.is_authenticated %}
+<div class="app-shell">
+  <header class="finance-header">
+    <div class="finance-header-inner">
+      <a class="finance-brand" href="{% url 'dashboard' %}" aria-label="BudgetWise overview">
+        <span class="finance-brand-mark" aria-hidden="true">◈</span>
+        <span>Budget<span>Wise</span></span>
+      </a>
+      <nav class="finance-nav" id="sidebar" aria-label="Main navigation">
+        <a class="finance-nav-link {% if section == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" {% if section == 'dashboard' %}aria-current="page"{% endif %}>Overview</a>
+        <a class="finance-nav-link {% if section == 'budgets' %}active{% endif %}" href="{% url 'index' %}" {% if section == 'budgets' %}aria-current="page"{% endif %}>Budgets</a>
+        <a class="finance-nav-link {% if section == 'transactions' %}active{% endif %}" href="{% url 'transactions' %}" {% if section == 'transactions' %}aria-current="page"{% endif %}>Transactions</a>
+        <a class="finance-nav-link {% if section == 'reports' %}active{% endif %}" href="{% url 'reports' %}" {% if section == 'reports' %}aria-current="page"{% endif %}>Reports</a>
+      </nav>
+      <div class="finance-header-actions">
+        <span class="finance-private"><span class="finance-status-dot" aria-hidden="true"></span> PRIVATE WORKSPACE</span>
+        <a class="finance-profile" href="{% url 'about' %}" aria-label="About BudgetWise">{{ user.username|first|upper }}</a>
+        <form class="finance-logout" method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" aria-label="Sign out">Sign out</button></form>
+        <button type="button" class="mobile-menu finance-menu-toggle" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+  <div class="finance-subnav">
+    <div class="finance-breadcrumb"><span>PERSONAL FINANCE</span><span class="finance-separator">/</span><strong>{% if section == 'dashboard' %}Overview{% elif section == 'budgets' %}Budgets{% elif section == 'transactions' %}Transactions{% elif section == 'reports' %}Reports{% else %}Account{% endif %}</strong></div>
+    <div class="finance-period">{% now "F Y" %}</div>
+  </div>
+  <main class="page-content" id="main-content">
+    {% if messages %}<div class="messages" role="status">{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+    <footer class="footer">BudgetWise <span>·</span> Personal finance made clearer</footer>
+  </main>
+  <div class="mobile-scrim" id="mobile-scrim"></div>
+</div>
+{% else %}
+  {% block auth %}
+    <div class="public-top"><a class="brand" href="{% url 'home' %}"><span class="brand-icon" aria-hidden="true">◈</span><span class="brand-name">Budget<span class="brand-light">Wise</span></span></a><nav class="public-links"><a href="{% url 'about' %}">About</a><a href="{% url 'login' %}">Sign in</a><a href="{% url 'signup' %}">Create account</a></nav></div>
+    <main class="public-content">{% block public_content %}{% endblock %}</main>
+  {% endblock %}
+{% endif %}
+</body>
+</html>
